@@ -34,7 +34,7 @@ This project proposes the development of a web-based Automated Equipment Rental 
 
 ## 📂 Repository Structure
 - `Figma Prototype Images/` - Contains high-fidelity UI mockups and wireframes.
-- `Project Proof Images/` - Contains evidence of project progress (JIRA boards, Git commits, Client Site Visits etc.).
+- `Project Proof Images/` - Contains evidence of Client Site Visits etc.).
 - `Reports & Diagrams/` - Contains the Project Proposal Report, SRS Document, & UML Diagrams.
 
 ## 🎓 Academic Context
