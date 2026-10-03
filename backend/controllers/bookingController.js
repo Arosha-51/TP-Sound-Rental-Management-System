@@ -1,12 +1,35 @@
 const Booking = require('../models/Booking');
 const Equipment = require('../models/Equipment');
-const User = require('../models/User'); // ✅ ADDED
+const User = require('../models/User');
 
-// ===== TASK 4 + 5 + 6: Create Booking =====
+// ============================================
+// TASK 4 + 5 + 6: Create Booking
+// TASK 2: Double-Booking Prevention
+// TASK 3: Availability Check
+// BUG FIX: Date validation (no negative totalFee)
+// ============================================
 const createBooking = async (req, res) => {
   try {
     const { customerId, equipmentId, startDate, endDate } = req.body;
 
+    // ===== NEW VALIDATION: Check required fields =====
+    if (!startDate || !endDate) {
+      return res.status(400).json({ 
+        message: 'Start date and End date are required' 
+      });
+    }
+
+    const start = new Date(startDate);
+    const end = new Date(endDate);
+
+    // ===== NEW VALIDATION: End date must be after Start date =====
+    if (start >= end) {
+      return res.status(400).json({ 
+        message: 'End date must be after Start date' 
+      });
+    }
+
+    // Check if equipment exists
     const equipment = await Equipment.findById(equipmentId);
     if (!equipment) {
       return res.status(404).json({ message: 'Equipment not found' });
@@ -15,13 +38,13 @@ const createBooking = async (req, res) => {
     // ===== TASK 2: DOUBLE-BOOKING PREVENTION LOGIC =====
     const conflictingBooking = await Booking.findOne({
       equipmentId: equipmentId,
-      status: { $in: ['Pending', 'Approved', 'Active'] }, // ✅ UPDATED
+      status: { $in: ['Pending', 'Approved', 'Active'] },
       $or: [
-        { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
+        { startDate: { $lte: end }, endDate: { $gte: start } }
       ]
     });
 
-    // ===== TASK 3: AVAILABILITY CHECK API =====
+    // ===== TASK 3: AVAILABILITY CHECK =====
     if (conflictingBooking) {
       return res.status(400).json({ 
         message: 'Equipment is already booked for these dates!',
@@ -30,8 +53,6 @@ const createBooking = async (req, res) => {
     }
 
     // ===== TASK 5: TOTAL RENTAL FEE CALCULATION =====
-    const start = new Date(startDate);
-    const end = new Date(endDate);
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
     const totalFee = (equipment.dailyRate * days) + equipment.securityDeposit;
 
@@ -41,16 +62,24 @@ const createBooking = async (req, res) => {
     const bookingId = `#TP-${currentYear}-${String(count + 1).padStart(3, '0')}`;
 
     const booking = await Booking.create({
-      bookingId, customerId, equipmentId, startDate, endDate, totalFee
+      bookingId,
+      customerId,
+      equipmentId,
+      startDate: start,
+      endDate: end,
+      totalFee
     });
 
     res.status(201).json(booking);
   } catch (error) {
+    console.log(error);
     res.status(400).json({ message: error.message });
   }
 };
 
+// ============================================
 // Get all bookings
+// ============================================
 const getBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({})
@@ -58,11 +87,14 @@ const getBookings = async (req, res) => {
       .populate('equipmentId', 'name dailyRate category');
     res.status(200).json(bookings);
   } catch (error) {
+    console.log(error);
     res.status(500).json({ message: error.message });
   }
 };
 
-// ===== TASK 7: APPROVE/REJECT BOOKING =====
+// ============================================
+// TASK 7: APPROVE/REJECT BOOKING
+// ============================================
 const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
@@ -75,12 +107,23 @@ const updateBookingStatus = async (req, res) => {
     booking.status = status;
     await booking.save();
 
+    // If approved, mark equipment as Rented
     if (status === 'Approved') {
-      await Equipment.findByIdAndUpdate(booking.equipmentId, { status: 'Rented' });
+      await Equipment.findByIdAndUpdate(booking.equipmentId, { 
+        status: 'Rented' 
+      });
+    }
+
+    // If completed, mark equipment as Available
+    if (status === 'Completed') {
+      await Equipment.findByIdAndUpdate(booking.equipmentId, { 
+        status: 'Available' 
+      });
     }
 
     res.status(200).json(booking);
   } catch (error) {
+    console.log(error);
     res.status(400).json({ message: error.message });
   }
 };
