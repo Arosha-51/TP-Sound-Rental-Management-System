@@ -1,6 +1,8 @@
 const Booking = require('../models/Booking');
 const Equipment = require('../models/Equipment');
+const User = require('../models/User'); // ✅ ADDED
 
+// ===== TASK 4 + 5 + 6: Create Booking =====
 const createBooking = async (req, res) => {
   try {
     const { customerId, equipmentId, startDate, endDate } = req.body;
@@ -10,13 +12,16 @@ const createBooking = async (req, res) => {
       return res.status(404).json({ message: 'Equipment not found' });
     }
 
+    // ===== TASK 2: DOUBLE-BOOKING PREVENTION LOGIC =====
     const conflictingBooking = await Booking.findOne({
       equipmentId: equipmentId,
-      status: { $in: ['Approved', 'Active'] },$or: [
-        { startDate: { $lte: new Date(endDate) }, endDate: {$gte: new Date(startDate) } }
+      status: { $in: ['Pending', 'Approved', 'Active'] }, // ✅ UPDATED
+      $or: [
+        { startDate: { $lte: new Date(endDate) }, endDate: { $gte: new Date(startDate) } }
       ]
     });
 
+    // ===== TASK 3: AVAILABILITY CHECK API =====
     if (conflictingBooking) {
       return res.status(400).json({ 
         message: 'Equipment is already booked for these dates!',
@@ -24,11 +29,13 @@ const createBooking = async (req, res) => {
       });
     }
 
+    // ===== TASK 5: TOTAL RENTAL FEE CALCULATION =====
     const start = new Date(startDate);
     const end = new Date(endDate);
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
     const totalFee = (equipment.dailyRate * days) + equipment.securityDeposit;
 
+    // ===== TASK 6: UNIQUE BOOKING ID GENERATION =====
     const currentYear = new Date().getFullYear();
     const count = await Booking.countDocuments();
     const bookingId = `#TP-${currentYear}-${String(count + 1).padStart(3, '0')}`;
@@ -43,6 +50,7 @@ const createBooking = async (req, res) => {
   }
 };
 
+// Get all bookings
 const getBookings = async (req, res) => {
   try {
     const bookings = await Booking.find({})
@@ -54,6 +62,7 @@ const getBookings = async (req, res) => {
   }
 };
 
+// ===== TASK 7: APPROVE/REJECT BOOKING =====
 const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
