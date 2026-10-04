@@ -1,4 +1,7 @@
 import { useState, useEffect } from 'react';
+import axios from 'axios';
+
+const API_URL = 'http://localhost:5000/api';
 
 function Catalog() {
   const [equipment, setEquipment] = useState([]);
@@ -7,19 +10,17 @@ function Catalog() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // Backend API එකෙන් equipment ගන්න
+  // ===== AXIOS: Direct Call =====
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
         setLoading(true);
-        const response = await fetch('http://localhost:5000/api/equipment');
-        if (!response.ok) throw new Error('Failed to fetch');
-        const data = await response.json();
-        setEquipment(data);
+        const response = await axios.get(`${API_URL}/equipment`);
+        setEquipment(response.data);
         setError(null);
       } catch (err) {
-        console.error('Error:', err);
-        setError('Backend එකට connect වෙන්න බැරි වුනා');
+        console.error('Error fetching equipment:', err);
+        setError('Backend එකට connect වෙන්න බැරි වුනා. Server එක run වෙනවද බලන්න.');
       } finally {
         setLoading(false);
       }
@@ -27,6 +28,8 @@ function Catalog() {
 
     fetchEquipment();
   }, []);
+
+  // ... අනිත් code එක එහෙම්මම තියන්න
 
   const categories = [
     'All',
@@ -36,7 +39,6 @@ function Catalog() {
     'PA & Lighting'
   ];
 
-  // Filter by category and search term
   const filteredEquipment = equipment.filter((item) => {
     const matchCategory =
       selectedCategory === 'All' || item.category === selectedCategory;
@@ -107,7 +109,7 @@ function Catalog() {
           <div className="text-center py-12">
             <p className="text-red-400 text-lg mb-2">⚠️ {error}</p>
             <p className="text-gray-500 text-sm">
-              Backend එක run වෙනවද බලන්න (npm start)
+              Terminal එකේ backend folder එකේ "npm start" ගහලා තියෙනවද බලන්න.
             </p>
           </div>
         ) : filteredEquipment.length === 0 ? (
