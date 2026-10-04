@@ -19,7 +19,7 @@ function BookingForm() {
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState(null);
 
-  // Equipment details ගන්න
+  // Fetch equipment details
   useEffect(() => {
     const fetchEquipment = async () => {
       if (!formData.equipmentId) return;
@@ -35,7 +35,7 @@ function BookingForm() {
     fetchEquipment();
   }, [formData.equipmentId]);
 
-  // Total Fee Calculate කරන්න
+  // Calculate total fee
   useEffect(() => {
     if (formData.startDate && formData.endDate && equipment) {
       const start = new Date(formData.startDate);
@@ -69,13 +69,13 @@ function BookingForm() {
       const response = await axios.post(`${API_URL}/bookings`, formData);
       setMessage({
         type: 'success',
-        text: `✅ Booking සාර්ථක! Booking ID: ${response.data.bookingId}`,
+        text: `Booking Successful! Booking ID: ${response.data.bookingId}`,
       });
       setTimeout(() => navigate('/'), 3000);
     } catch (error) {
       setMessage({
         type: 'error',
-        text: `❌ ${error.response?.data?.message || 'Booking එක fail වුනා'}`,
+        text: `${error.response?.data?.message || 'Booking failed'}`,
       });
     } finally {
       setLoading(false);
@@ -94,7 +94,7 @@ function BookingForm() {
 
         <h1 className="text-3xl font-bold text-neon mb-2">Book Equipment</h1>
         <p className="text-gray-400 mb-6">
-          ඔයාට අවශ්‍ය equipment එකයි දිනයි තෝරන්න
+          Select the equipment and rental dates
         </p>
 
         {message && (
@@ -120,7 +120,7 @@ function BookingForm() {
               value={formData.equipmentId}
               onChange={handleChange}
               required
-              placeholder="Equipment ID එක paste කරන්න"
+              placeholder="Paste Equipment ID here"
               className="w-full bg-dark border border-dark-border rounded-lg px-4 py-3 text-white focus:outline-none focus:border-neon"
             />
           </div>
@@ -163,7 +163,7 @@ function BookingForm() {
             </div>
           </div>
 
-          {/* ===== TOTAL FEE DISPLAY ===== */}
+          {/* Total Fee Display */}
           {totalFee > 0 && equipment && (
             <div className="bg-neon/10 border border-neon rounded-lg p-4">
               <div className="flex justify-between mb-2">
@@ -194,7 +194,7 @@ function BookingForm() {
             disabled={loading || totalFee === 0}
             className="w-full bg-neon text-dark font-semibold py-3 rounded-lg hover:bg-neon/90 transition disabled:opacity-50 disabled:cursor-not-allowed"
           >
-            {loading ? 'Booking කරනවා...' : 'Confirm Booking'}
+            {loading ? 'Booking...' : 'Confirm Booking'}
           </button>
         </form>
       </div>
