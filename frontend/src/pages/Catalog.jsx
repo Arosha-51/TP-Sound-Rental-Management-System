@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
+import logo from '../assets/Logo.png';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -54,9 +55,11 @@ function Catalog() {
       <header className="border-b border-dark-border bg-dark-card">
         <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-neon rounded-full flex items-center justify-center">
-              <span className="text-dark font-bold text-xl">♪</span>
-            </div>
+            <img
+              src={logo}
+              alt="TP Sound Logo"
+              className="w-14 h-14 object-contain"
+            />
             <div>
               <h1 className="text-neon font-bold text-lg">TP Sound &</h1>
               <p className="text-gray-400 text-xs">Musical Gear Rentals</p>
@@ -87,11 +90,10 @@ function Catalog() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-2 rounded-full whitespace-nowrap transition ${
-                selectedCategory === cat
+              className={`px-5 py-2 rounded-full whitespace-nowrap transition ${selectedCategory === cat
                   ? 'bg-neon text-dark font-semibold'
                   : 'bg-dark-card text-white border border-dark-border hover:border-neon'
-              }`}
+                }`}
             >
               {cat}
             </button>
@@ -139,11 +141,10 @@ function Catalog() {
                     <span className="text-6xl">🎸</span>
                   )}
                   <span
-                    className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
-                      item.status === 'Available'
+                    className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'Available'
                         ? 'bg-neon/20 text-neon border border-neon'
                         : 'bg-red-500/20 text-red-400 border border-red-500'
-                    }`}
+                      }`}
                   >
                     {item.status}
                   </span>
@@ -152,7 +153,7 @@ function Catalog() {
                 <div className="p-4">
                   <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
                     {item.equipmentCode} • {item.category}
-                 </p>
+                  </p>
                   <h3 className="text-white font-semibold text-base mb-3 line-clamp-2 h-12">
                     {item.name}
                   </h3>
@@ -165,11 +166,10 @@ function Catalog() {
 
                   <button
                     disabled={item.status !== 'Available'}
-                    className={`w-full py-2 rounded-lg font-semibold transition ${
-                      item.status === 'Available'
+                    className={`w-full py-2 rounded-lg font-semibold transition ${item.status === 'Available'
                         ? 'bg-neon text-dark hover:bg-neon/90'
                         : 'bg-dark-border text-gray-500 cursor-not-allowed'
-                    }`}
+                      }`}
                   >
                     {item.status === 'Available' ? 'Book Now' : 'Unavailable'}
                   </button>
