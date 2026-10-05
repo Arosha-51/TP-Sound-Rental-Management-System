@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import axios from 'axios';
+import logo from '../assets/Logo.png';
 
 const API_URL = 'http://localhost:5000/api';
 
@@ -87,12 +88,25 @@ function BookingForm() {
       <div className="w-full max-w-lg bg-dark-card border border-dark-border rounded-xl p-8">
         <button
           onClick={() => navigate('/')}
-          className="text-gray-400 hover:text-neon transition mb-4"
+          className="text-gray-400 hover:text-neon transition mb-6"
         >
           ← Back to Catalog
         </button>
 
-        <h1 className="text-3xl font-bold text-neon mb-2">Book Equipment</h1>
+        {/* ===== LOGO HEADER ===== */}
+        <div className="flex items-center gap-3 mb-6">
+          <img
+            src={logo}
+            alt="TP Sound Logo"
+            className="w-14 h-14 object-contain"
+          />
+          <div>
+            <h1 className="text-neon font-bold text-lg">TP Sound &</h1>
+            <p className="text-gray-400 text-xs">Musical Gear Rentals</p>
+          </div>
+        </div>
+
+        <h2 className="text-3xl font-bold text-neon mb-2">Book Equipment</h2>
         <p className="text-gray-400 mb-6">
           Select the equipment and rental dates
         </p>
@@ -126,14 +140,16 @@ function BookingForm() {
           </div>
 
           {equipment && (
-          <div className="bg-dark border border-dark-border rounded-lg p-3">
-            <p className="text-gray-400 text-xs mb-1">{equipment.equipmentCode}</p>
-            <p className="text-neon font-semibold">{equipment.name}</p>
-            <p className="text-gray-400 text-sm">
-               LKR {equipment.dailyRate.toLocaleString()} / day
-           </p>
-          </div>
-           )}
+            <div className="bg-dark border border-dark-border rounded-lg p-3">
+              <p className="text-gray-400 text-xs mb-1">
+                {equipment.equipmentCode}
+              </p>
+              <p className="text-neon font-semibold">{equipment.name}</p>
+              <p className="text-gray-400 text-sm">
+                LKR {equipment.dailyRate.toLocaleString()} / day
+              </p>
+            </div>
+          )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>
