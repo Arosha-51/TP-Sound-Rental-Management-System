@@ -20,7 +20,7 @@ function Dashboard() {
             <img
               src={logo}
               alt="TP Sound Logo"
-              className="w-12 h-12 object-contain"
+              className="w-14 h-14 object-contain"
             />
             <div>
               <h1 className="text-neon font-bold text-lg">TP Sound &</h1>

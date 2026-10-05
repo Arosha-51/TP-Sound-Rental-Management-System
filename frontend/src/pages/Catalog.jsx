@@ -2,6 +2,28 @@ import { useState, useEffect } from 'react';
 import axios from 'axios';
 import logo from '../assets/Logo.png';
 
+// Image imports
+import maxtoneDrumKit from '../assets/Gear_Maxtone_Drum_Kit.jpg';
+import blackLesPaul from '../assets/Gear_Black_LesPaul_Guitar.jpg';
+import korgMixer from '../assets/Gear_KORG_KMX8_Mixer.jpg';
+import redBass from '../assets/Gear_Red_Bass_Guitar.jpg';
+import chromeFlyingV from '../assets/Gear_Chrome_FlyingV_Guitar.jpg';
+import washburnYellow from '../assets/Gear_Washburn_Yellow_Guitar.jpg';
+import yamahaKeyboard from '../assets/Gear_Yamaha_Keyboards.jpg';
+import samsonMixer from '../assets/Gear_Samson_MIX10_Mixer.jpg';
+
+// Equipment name → Image mapping
+const imageMap = {
+  'KORG KMX-8 Audio Mixer': korgMixer,
+  'Black Les Paul Style Electric Guitar': blackLesPaul,
+  'Washburn Electric Guitar': washburnYellow,
+  'Chrome Flying V Electric Guitar': chromeFlyingV,
+  'Maxtone Acoustic Drum Kit': maxtoneDrumKit,
+  'Yamaha Electronic Keyboard': yamahaKeyboard,
+  'Samson MIX-10 Audio Mixer': samsonMixer,
+  'Red Sunburst Electric Bass Guitar': redBass,
+};
+
 const API_URL = 'http://localhost:5000/api';
 
 function Catalog() {
@@ -11,7 +33,7 @@ function Catalog() {
   const [selectedCategory, setSelectedCategory] = useState('All');
   const [searchTerm, setSearchTerm] = useState('');
 
-  // ===== AXIOS: Direct Call =====
+  // Fetch equipment from backend
   useEffect(() => {
     const fetchEquipment = async () => {
       try {
@@ -21,7 +43,7 @@ function Catalog() {
         setError(null);
       } catch (err) {
         console.error('Error fetching equipment:', err);
-        setError('Backend එකට connect වෙන්න බැරි වුනා. Server එක run වෙනවද බලන්න.');
+        setError('Backend connection failed. Please check if server is running.');
       } finally {
         setLoading(false);
       }
@@ -30,14 +52,12 @@ function Catalog() {
     fetchEquipment();
   }, []);
 
-  // ... අනිත් code එක එහෙම්මම තියන්න
-
   const categories = [
     'All',
     'Guitars & Basses',
     'Keyboards & Synth',
     'Drums & Percussion',
-    'PA & Lighting'
+    'PA & Lighting',
   ];
 
   const filteredEquipment = equipment.filter((item) => {
@@ -90,10 +110,11 @@ function Catalog() {
             <button
               key={cat}
               onClick={() => setSelectedCategory(cat)}
-              className={`px-5 py-2 rounded-full whitespace-nowrap transition ${selectedCategory === cat
+              className={`px-5 py-2 rounded-full whitespace-nowrap transition ${
+                selectedCategory === cat
                   ? 'bg-neon text-dark font-semibold'
                   : 'bg-dark-card text-white border border-dark-border hover:border-neon'
-                }`}
+              }`}
             >
               {cat}
             </button>
@@ -111,7 +132,7 @@ function Catalog() {
           <div className="text-center py-12">
             <p className="text-red-400 text-lg mb-2">⚠️ {error}</p>
             <p className="text-gray-500 text-sm">
-              Terminal එකේ backend folder එකේ "npm start" ගහලා තියෙනවද බලන්න.
+              Please check if the backend server is running on port 5000.
             </p>
           </div>
         ) : filteredEquipment.length === 0 ? (
@@ -126,25 +147,21 @@ function Catalog() {
                 className="bg-dark-card border border-dark-border rounded-xl overflow-hidden hover:border-neon transition-all duration-300 hover:shadow-lg hover:shadow-neon/20"
               >
                 <div className="relative h-48 bg-dark flex items-center justify-center overflow-hidden">
-                  {item.imageUrl ? (
+                  {imageMap[item.name] ? (
                     <img
-                      src={item.imageUrl}
+                      src={imageMap[item.name]}
                       alt={item.name}
                       className="w-full h-full object-cover"
-                      onError={(e) => {
-                        e.target.style.display = 'none';
-                        e.target.parentElement.innerHTML =
-                          '<span class="text-6xl">🎸</span>';
-                      }}
                     />
                   ) : (
                     <span className="text-6xl">🎸</span>
                   )}
                   <span
-                    className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${item.status === 'Available'
+                    className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
+                      item.status === 'Available'
                         ? 'bg-neon/20 text-neon border border-neon'
                         : 'bg-red-500/20 text-red-400 border border-red-500'
-                      }`}
+                    }`}
                   >
                     {item.status}
                   </span>
@@ -166,10 +183,11 @@ function Catalog() {
 
                   <button
                     disabled={item.status !== 'Available'}
-                    className={`w-full py-2 rounded-lg font-semibold transition ${item.status === 'Available'
+                    className={`w-full py-2 rounded-lg font-semibold transition ${
+                      item.status === 'Available'
                         ? 'bg-neon text-dark hover:bg-neon/90'
                         : 'bg-dark-border text-gray-500 cursor-not-allowed'
-                      }`}
+                    }`}
                   >
                     {item.status === 'Available' ? 'Book Now' : 'Unavailable'}
                   </button>
