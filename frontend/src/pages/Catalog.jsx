@@ -151,8 +151,8 @@ function Catalog() {
 
                 <div className="p-4">
                   <p className="text-gray-400 text-xs uppercase tracking-wide mb-1">
-                    {item.category}
-                  </p>
+                    {item.equipmentCode} • {item.category}
+                 </p>
                   <h3 className="text-white font-semibold text-base mb-3 line-clamp-2 h-12">
                     {item.name}
                   </h3>

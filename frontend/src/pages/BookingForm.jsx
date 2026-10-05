@@ -126,13 +126,14 @@ function BookingForm() {
           </div>
 
           {equipment && (
-            <div className="bg-dark border border-dark-border rounded-lg p-3">
-              <p className="text-neon font-semibold">{equipment.name}</p>
-              <p className="text-gray-400 text-sm">
-                LKR {equipment.dailyRate.toLocaleString()} / day
-              </p>
-            </div>
-          )}
+          <div className="bg-dark border border-dark-border rounded-lg p-3">
+            <p className="text-gray-400 text-xs mb-1">{equipment.equipmentCode}</p>
+            <p className="text-neon font-semibold">{equipment.name}</p>
+            <p className="text-gray-400 text-sm">
+               LKR {equipment.dailyRate.toLocaleString()} / day
+           </p>
+          </div>
+           )}
 
           <div className="grid grid-cols-2 gap-4">
             <div>

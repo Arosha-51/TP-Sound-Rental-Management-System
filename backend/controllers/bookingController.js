@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 const Booking = require('../models/Booking');
 const Equipment = require('../models/Equipment');
 const User = require('../models/User');
@@ -7,29 +8,57 @@ const User = require('../models/User');
 // TASK 2: Double-Booking Prevention
 // TASK 3: Availability Check
 // BUG FIX: Date validation (no negative totalFee)
+// BUG FIX: ObjectId validation (invalid ID format)
 // ============================================
 const createBooking = async (req, res) => {
   try {
     const { customerId, equipmentId, startDate, endDate } = req.body;
 
-    // ===== NEW VALIDATION: Check required fields =====
+    // ===== VALIDATION: Check required fields =====
     if (!startDate || !endDate) {
-      return res.status(400).json({ 
-        message: 'Start date and End date are required' 
+      return res.status(400).json({
+        message: 'Start date and End date are required',
+      });
+    }
+
+    if (!customerId || !equipmentId) {
+      return res.status(400).json({
+        message: 'Customer ID and Equipment ID are required',
       });
     }
 
     const start = new Date(startDate);
     const end = new Date(endDate);
 
-    // ===== NEW VALIDATION: End date must be after Start date =====
-    if (start >= end) {
-      return res.status(400).json({ 
-        message: 'End date must be after Start date' 
+    // ===== VALIDATION: Check valid dates =====
+    if (isNaN(start.getTime()) || isNaN(end.getTime())) {
+      return res.status(400).json({
+        message: 'Invalid date format',
       });
     }
 
-    // Check if equipment exists
+    // ===== VALIDATION: End date must be after Start date =====
+    if (start >= end) {
+      return res.status(400).json({
+        message: 'End date must be after Start date',
+      });
+    }
+
+    // ===== VALIDATION: Equipment ID must be valid ObjectId =====
+    if (!mongoose.Types.ObjectId.isValid(equipmentId)) {
+      return res.status(400).json({
+        message: 'Invalid Equipment ID format',
+      });
+    }
+
+    // ===== VALIDATION: Customer ID must be valid ObjectId =====
+    if (!mongoose.Types.ObjectId.isValid(customerId)) {
+      return res.status(400).json({
+        message: 'Invalid Customer ID format',
+      });
+    }
+
+    // ===== Check if equipment exists =====
     const equipment = await Equipment.findById(equipmentId);
     if (!equipment) {
       return res.status(404).json({ message: 'Equipment not found' });
@@ -39,22 +68,20 @@ const createBooking = async (req, res) => {
     const conflictingBooking = await Booking.findOne({
       equipmentId: equipmentId,
       status: { $in: ['Pending', 'Approved', 'Active'] },
-      $or: [
-        { startDate: { $lte: end }, endDate: { $gte: start } }
-      ]
+      $or: [{ startDate: { $lte: end }, endDate: { $gte: start } }],
     });
 
     // ===== TASK 3: AVAILABILITY CHECK =====
     if (conflictingBooking) {
-      return res.status(400).json({ 
+      return res.status(400).json({
         message: 'Equipment is already booked for these dates!',
-        conflict: conflictingBooking.bookingId
+        conflict: conflictingBooking.bookingId,
       });
     }
 
     // ===== TASK 5: TOTAL RENTAL FEE CALCULATION =====
     const days = Math.ceil((end - start) / (1000 * 60 * 60 * 24)) + 1;
-    const totalFee = (equipment.dailyRate * days) + equipment.securityDeposit;
+    const totalFee = equipment.dailyRate * days + equipment.securityDeposit;
 
     // ===== TASK 6: UNIQUE BOOKING ID GENERATION =====
     const currentYear = new Date().getFullYear();
@@ -67,7 +94,7 @@ const createBooking = async (req, res) => {
       equipmentId,
       startDate: start,
       endDate: end,
-      totalFee
+      totalFee,
     });
 
     res.status(201).json(booking);
@@ -98,6 +125,22 @@ const getBookings = async (req, res) => {
 const updateBookingStatus = async (req, res) => {
   try {
     const { status } = req.body;
+
+    // ===== VALIDATION: Booking ID format =====
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      return res.status(400).json({
+        message: 'Invalid Booking ID format',
+      });
+    }
+
+    // ===== VALIDATION: Status value =====
+    const validStatuses = ['Pending', 'Approved', 'Rejected', 'Active', 'Completed'];
+    if (!validStatuses.includes(status)) {
+      return res.status(400).json({
+        message: 'Invalid status value',
+      });
+    }
+
     const booking = await Booking.findById(req.params.id);
 
     if (!booking) {
@@ -109,15 +152,15 @@ const updateBookingStatus = async (req, res) => {
 
     // If approved, mark equipment as Rented
     if (status === 'Approved') {
-      await Equipment.findByIdAndUpdate(booking.equipmentId, { 
-        status: 'Rented' 
+      await Equipment.findByIdAndUpdate(booking.equipmentId, {
+        status: 'Rented',
       });
     }
 
     // If completed, mark equipment as Available
     if (status === 'Completed') {
-      await Equipment.findByIdAndUpdate(booking.equipmentId, { 
-        status: 'Available' 
+      await Equipment.findByIdAndUpdate(booking.equipmentId, {
+        status: 'Available',
       });
     }
 
