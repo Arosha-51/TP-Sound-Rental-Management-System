@@ -248,11 +248,77 @@ const generatePdfContract = async (req, res) => {
 };
 
 // ============================================
+// 5. PROCESS CHECK-IN (Calculate Late Fee & Net Refund)
+// ============================================
+const checkInBooking = async (req, res) => {
+  try {
+    const { damageCharges } = req.body; // Frontend එකෙන් එවන Damage ගාන
+    const bookingId = req.params.id;
+
+    if (!mongoose.Types.ObjectId.isValid(bookingId)) {
+      return res.status(400).json({ message: 'Invalid Booking ID format' });
+    }
+
+    const booking = await Booking.findById(bookingId).populate('equipmentId');
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found' });
+    }
+
+    // 1. දවස් ගණන හදන්න (Contract End Date vs Actual Return Date)
+    const endDate = new Date(booking.endDate);
+    const actualReturnDate = new Date();
+   
+    // දවස් ගාන හදන ලොජික් එක (පරක්කු වෙච්ච දවස් විතරයි)
+    const timeDiff = actualReturnDate.getTime() - endDate.getTime();
+    const overdueDays = Math.max(0, Math.ceil(timeDiff / (1000 * 3600 * 24)));
+
+    // 2. Late Fee එක හදන්න (Daily Rate * Overdue Days)
+    const dailyRate = booking.equipmentId ? booking.equipmentId.dailyRate : 0;
+    const lateFee = overdueDays * dailyRate;
+
+    // 3. Net Refund එක හදන්න (Deposit - Late Fee - Damage)
+    const deposit = booking.securityDeposit || 5000;
+    const damage = Number(damageCharges) || 0;
+    const netRefund = deposit - lateFee - damage;
+
+    // 4. Booking එක Update කරන්න
+    booking.actualReturnDate = actualReturnDate;
+    booking.lateFee = lateFee;
+    booking.damageCharges = damage;
+    booking.netRefund = netRefund;
+    booking.status = 'Completed';
+    await booking.save();
+
+    // 5. Equipment එකේ තත්ත්වය 'Available' කරන්න
+    await Equipment.findByIdAndUpdate(booking.equipmentId._id, { status: 'Available' });
+
+    // 6. සාර්ථක පිළිතුර එවන්න
+    res.status(200).json({
+      message: 'Check-In successful',
+      data: {
+        bookingId: booking.bookingId,
+        overdueDays,
+        lateFee,
+        damage,
+        netRefund,
+        status: booking.status
+      }
+    });
+
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ============================================
 // EXPORTS
 // ============================================
 module.exports = {
   createBooking,
   getBookings,
   updateBookingStatus,
-  generatePdfContract
+  generatePdfContract,
+  checkInBooking // 👈 මේක අලුතෙන් එකතු කළා
 };
