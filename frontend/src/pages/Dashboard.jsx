@@ -82,6 +82,12 @@ function Dashboard() {
           <button onClick={() => navigate('/')} className="text-gray-400 hover:text-neon transition">
             ← Back to Catalog
           </button>
+          <button
+            onClick={() => navigate('/admin/check-in')}
+            className="bg-neon text-dark font-bold px-4 py-2 rounded hover:bg-green-500 mr-4"
+          >
+            Quick Check-In
+          </button>
         </div>
       </header>
 
@@ -105,7 +111,7 @@ function Dashboard() {
         {/* Pending Requests Table */}
         <div className="bg-dark-card border border-dark-border rounded-xl p-6">
           <h3 className="text-xl font-bold text-white mb-4">Pending Booking Requests</h3>
-          
+
           {loading ? (
             <p className="text-white">Loading bookings...</p>
           ) : bookings.length === 0 ? (
@@ -133,23 +139,23 @@ function Dashboard() {
                       {new Date(booking.startDate).toLocaleDateString()} - {new Date(booking.endDate).toLocaleDateString()}
                     </td>
                     <td className="py-3 text-neon">LKR {booking.totalFee}</td>
-                    
+
                     {/* මෙන්න මේ <td> එක ඇතුළේ තමයි බොත්තම් ඔක්කොම තියෙන්න ඕනේ */}
                     <td className="py-3 flex gap-2">
-                      <button 
+                      <button
                         onClick={() => handleStatusUpdate(booking._id, 'Approved')}
                         className="bg-neon text-dark px-3 py-1 rounded text-sm font-bold"
                       >
                         Approve
                       </button>
-                      <button 
+                      <button
                         onClick={() => handleStatusUpdate(booking._id, 'Rejected')}
                         className="bg-red-500 hover:bg-red-600 text-white px-3 py-1 rounded text-sm"
                       >
                         Reject
                       </button>
-                      <button 
-                        onClick={() => handleDownloadPDF(booking._id)} 
+                      <button
+                        onClick={() => handleDownloadPDF(booking._id)}
                         className="bg-blue-500 hover:bg-blue-600 text-white px-3 py-1 rounded text-sm"
                       >
                         PDF
