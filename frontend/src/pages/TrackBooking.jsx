@@ -16,10 +16,11 @@ const TrackBooking = () => {
     setBooking(null);
 
     try {
-      // 👇 ඉන්පුට් එකේ # ලකුණ තියෙනවා නම් ඒක අයින් කරනවා
+      // 👇 මෙන්න මේ පේළිය තමයි ඔයාගේ කෝඩ් එකේ අඩුවෙලා තිබ්බේ 👇
+      // මේකෙන් ඉන්පුට් එකේ තියෙන # ලකුණ අයින් කරනවා
       const cleanBookingId = bookingId.replace('#', '');
 
-      // API එකට යවනවා
+      // ඊට පස්සේ ඒක API එකට යවනවා
       const response = await axios.get(`http://localhost:5000/api/bookings/track/${cleanBookingId}`);
       setBooking(response.data);
     } catch (err) {

@@ -308,18 +308,19 @@ const checkInBooking = async (req, res) => {
 // ============================================
 // 6. TRACK BOOKING (GET BY CUSTOM BOOKING ID)
 // ============================================
+// 👇 මේක තමයි අලුතෙන් එකතු කළේ 👇
 const trackBooking = async (req, res) => {
   try {
     let searchId = req.params.bookingId;
     
-    // Frontend එකෙන් # ලකුණ අයින් කරලා එව්වොත්, ආයෙත් # එක එකතු කරනවා
+    // Frontend එකෙන් # ලකුණ අයින් කරලා එව්වොත්, ආයෙත් # එක එකතු කරනවා DB එකේ තියෙන විදියට හොයන්න
     if (!searchId.startsWith('#')) {
       searchId = '#' + searchId;
     }
 
     const booking = await Booking.findOne({ bookingId: searchId })
       .populate('customerId', 'name email phone')
-      .populate('equipmentId', 'name dailyRate category');
+      .populate('equipmentId', 'name dailyRate category imageUrl');
 
     if (!booking) {
       return res.status(404).json({ message: 'Booking not found. Please check your ID.' });
@@ -341,5 +342,5 @@ module.exports = {
   updateBookingStatus,
   generatePdfContract,
   checkInBooking,
-  trackBooking
+  trackBooking // 👈 මේකත් එකතු කළා
 };

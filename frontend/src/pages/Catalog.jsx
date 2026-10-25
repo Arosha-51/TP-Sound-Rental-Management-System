@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import logo from '../assets/Logo.png';
-import { useNavigate } from 'react-router-dom'; // 👈 අලුතෙන් එකතු කළා
+import { useNavigate } from 'react-router-dom';
 
 // Image imports
 import maxtoneDrumKit from '../assets/Gear_Maxtone_Drum_Kit.jpg';
@@ -28,7 +28,7 @@ const imageMap = {
 const API_URL = 'http://localhost:5000/api';
 
 function Catalog() {
-  const navigate = useNavigate(); // 👈 අලුතෙන් එකතු කළා
+  const navigate = useNavigate(); // 👈 මේක අලුතෙන් දැම්මා
 
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
