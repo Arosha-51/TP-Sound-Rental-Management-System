@@ -252,7 +252,7 @@ const generatePdfContract = async (req, res) => {
 // ============================================
 const checkInBooking = async (req, res) => {
   try {
-    const { damageCharges } = req.body; // Frontend එකෙන් එවන Damage ගාන
+    const { damageCharges } = req.body;
     const bookingId = req.params.id;
 
     if (!mongoose.Types.ObjectId.isValid(bookingId)) {
@@ -265,24 +265,19 @@ const checkInBooking = async (req, res) => {
       return res.status(404).json({ message: 'Booking not found' });
     }
 
-    // 1. දවස් ගණන හදන්න (Contract End Date vs Actual Return Date)
     const endDate = new Date(booking.endDate);
     const actualReturnDate = new Date();
    
-    // දවස් ගාන හදන ලොජික් එක (පරක්කු වෙච්ච දවස් විතරයි)
     const timeDiff = actualReturnDate.getTime() - endDate.getTime();
     const overdueDays = Math.max(0, Math.ceil(timeDiff / (1000 * 3600 * 24)));
 
-    // 2. Late Fee එක හදන්න (Daily Rate * Overdue Days)
     const dailyRate = booking.equipmentId ? booking.equipmentId.dailyRate : 0;
     const lateFee = overdueDays * dailyRate;
 
-    // 3. Net Refund එක හදන්න (Deposit - Late Fee - Damage)
     const deposit = booking.securityDeposit || 5000;
     const damage = Number(damageCharges) || 0;
     const netRefund = deposit - lateFee - damage;
 
-    // 4. Booking එක Update කරන්න
     booking.actualReturnDate = actualReturnDate;
     booking.lateFee = lateFee;
     booking.damageCharges = damage;
@@ -290,10 +285,8 @@ const checkInBooking = async (req, res) => {
     booking.status = 'Completed';
     await booking.save();
 
-    // 5. Equipment එකේ තත්ත්වය 'Available' කරන්න
     await Equipment.findByIdAndUpdate(booking.equipmentId._id, { status: 'Available' });
 
-    // 6. සාර්ථක පිළිතුර එවන්න
     res.status(200).json({
       message: 'Check-In successful',
       data: {
@@ -313,6 +306,34 @@ const checkInBooking = async (req, res) => {
 };
 
 // ============================================
+// 6. TRACK BOOKING (GET BY CUSTOM BOOKING ID)
+// ============================================
+// 👇 මේක තමයි අලුතෙන් එකතු කළේ 👇
+const trackBooking = async (req, res) => {
+  try {
+    let searchId = req.params.bookingId;
+    
+    // Frontend එකෙන් # ලකුණ අයින් කරලා එව්වොත්, ආයෙත් # එක එකතු කරනවා DB එකේ තියෙන විදියට හොයන්න
+    if (!searchId.startsWith('#')) {
+      searchId = '#' + searchId;
+    }
+
+    const booking = await Booking.findOne({ bookingId: searchId })
+      .populate('customerId', 'name email phone')
+      .populate('equipmentId', 'name dailyRate category imageUrl');
+
+    if (!booking) {
+      return res.status(404).json({ message: 'Booking not found. Please check your ID.' });
+    }
+
+    res.status(200).json(booking);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ============================================
 // EXPORTS
 // ============================================
 module.exports = {
@@ -320,5 +341,6 @@ module.exports = {
   getBookings,
   updateBookingStatus,
   generatePdfContract,
-  checkInBooking // 👈 මේක අලුතෙන් එකතු කළා
+  checkInBooking,
+  trackBooking // 👈 මේකත් එකතු කළා
 };
