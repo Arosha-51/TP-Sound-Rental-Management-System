@@ -28,4 +28,7 @@ router.put('/:id/check-in', checkInBooking);
 // 5. GET (PDF Contract එක හදන්න)
 router.get('/:id/contract', generatePdfContract);
 
+// 5. PUT (Check-In කරන්න සහ Penalty හදන්න)
+router.put('/:id/check-in', checkInBooking); 
+
 module.exports = router;
