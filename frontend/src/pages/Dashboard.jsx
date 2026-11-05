@@ -8,10 +8,13 @@ function Dashboard() {
 
   const [bookings, setBookings] = useState([]);
   const [loading, setLoading] = useState(true);
-  const [processingId, setProcessingId] = useState(null); // බටන් ඔබද්දී Loading පෙන්නන්න
-  const [message, setMessage] = useState({ type: '', text: '' }); // Success/Error පෙන්නන්න
+  const [processingId, setProcessingId] = useState(null);
+  const [message, setMessage] = useState({ type: '', text: '' });
 
-  // (මේ stats ටික දැනට hardcode කරලා තියෙන්නේ. Analytics වලදී අපි මේක API එකට connect කරමු)
+  // 👇 අලුතෙන් එකතු කරපු States (Popup එක සඳහා)
+  const [isModalOpen, setIsModalOpen] = useState(false);
+  const [selectedBooking, setSelectedBooking] = useState(null);
+
   const stats = [
     { title: 'Active Rentals', value: '12', color: 'neon', icon: '📊' },
     { title: 'Pending Approvals', value: bookings.length.toString(), color: 'yellow', icon: '⏳' },
@@ -23,7 +26,6 @@ function Dashboard() {
     try {
       setLoading(true);
       const response = await axios.get('http://localhost:5000/api/bookings');
-      // Pending ඒවා විතරක් අපිට ඕන නිසා filter කරගන්නවා
       const pendingBookings = response.data.filter(b => b.status === 'Pending');
       setBookings(pendingBookings);
     } catch (error) {
@@ -38,20 +40,22 @@ function Dashboard() {
     fetchBookings();
   }, []);
 
-  // PDF එක ඩවුන්ලෝඩ් කරන ෆන්ක්ෂන් එක
-  const handleDownloadPDF = async (id, bookingId) => {
+  // PDF එක ඩවුන්ලෝඩ් කරන ෆන්ක්ෂන් එක (Popup එකෙන් call වෙනවා)
+  const handleDownloadPDF = async () => {
+    if (!selectedBooking) return;
     try {
-      setProcessingId(id);
-      const response = await axios.get(`http://localhost:5000/api/bookings/${id}/contract`, {
+      setProcessingId(selectedBooking._id);
+      const response = await axios.get(`http://localhost:5000/api/bookings/${selectedBooking._id}/contract`, {
         responseType: 'blob',
       });
       const url = window.URL.createObjectURL(new Blob([response.data]));
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', `Contract-${bookingId}.pdf`);
+      link.setAttribute('download', `Contract-${selectedBooking.bookingId}.pdf`);
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
+      setIsModalOpen(false); // PDF එක ගත්තට පස්සේ Popup එක වහන්න
     } catch (error) {
       console.error('Error downloading PDF:', error);
       alert('PDF එක ගන්න බැරි වුනා. ආයෙත් ට්‍රයි කරන්න.');
@@ -60,17 +64,12 @@ function Dashboard() {
     }
   };
 
-  // Approve හෝ Reject කරන ෆන්ක්ෂන් එක
   const handleStatusUpdate = async (id, newStatus) => {
     try {
       setProcessingId(id);
       await axios.put(`http://localhost:5000/api/bookings/${id}/status`, { status: newStatus });
       setMessage({ type: 'success', text: `Booking ${newStatus} successfully!` });
-      
-      // Update උන එක ලිස්ට් එකෙන් අයින් කරනවා (Refresh නැතුව)
       setBookings(bookings.filter(b => b._id !== id));
-      
-      // තත්පර 3කින් Message එක මකන්න
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -78,6 +77,12 @@ function Dashboard() {
     } finally {
       setProcessingId(null);
     }
+  };
+
+  // Popup එක අරින්න
+  const openContractModal = (booking) => {
+    setSelectedBooking(booking);
+    setIsModalOpen(true);
   };
 
   return (
@@ -163,7 +168,7 @@ function Dashboard() {
                       <td className="py-4 text-white">{booking.customerId?.name || 'N/A'}</td>
                       <td className="py-4 text-gray-400">{booking.equipmentId?.name || 'N/A'}</td>
                       <td className="py-4 text-gray-400 text-sm">
-                        {new Date(booking.startDate).toLocaleDateString()} - <br/>
+                        {new Date(booking.startDate).toLocaleDateString()} - <br />
                         {new Date(booking.endDate).toLocaleDateString()}
                       </td>
                       <td className="py-4 text-neon font-bold">LKR {booking.totalFee}</td>
@@ -183,12 +188,13 @@ function Dashboard() {
                         >
                           Reject
                         </button>
+                        {/* PDF බටන් එක දැන් Popup එක අරිනවා */}
                         <button
-                          onClick={() => handleDownloadPDF(booking._id, booking.bookingId)}
+                          onClick={() => openContractModal(booking)}
                           disabled={processingId === booking._id}
                           className="bg-blue-600 hover:bg-blue-500 text-white px-3 py-1.5 rounded text-sm font-semibold disabled:opacity-50 transition"
                         >
-                          {processingId === booking._id ? 'Wait...' : 'PDF'}
+                          PDF
                         </button>
                       </td>
                     </tr>
@@ -199,6 +205,70 @@ function Dashboard() {
           )}
         </div>
       </div>
+
+      {/* =========================================
+          👇 අලුතෙන් හදපු Generate Contract Popup UI 👇
+          ========================================= */}
+      {isModalOpen && selectedBooking && (
+        <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
+          <div className="bg-[#1e1e1e] p-8 rounded-xl w-full max-w-lg border border-gray-700 shadow-2xl relative">
+            {/* Close Button */}
+            <button
+              onClick={() => setIsModalOpen(false)}
+              className="absolute top-4 right-4 text-gray-400 hover:text-white"
+            >
+              ✕
+            </button>
+
+            <h2 className="text-2xl font-bold text-white mb-6 text-center">Generate Rental Contract</h2>
+
+            {/* Details Box */}
+            <div className="bg-[#131313] border border-gray-700 rounded-lg p-5 mb-6 text-sm">
+              <div className="flex justify-between mb-3 border-b border-gray-800 pb-2">
+                <span className="text-gray-400">Booking ID:</span>
+                <span className="text-neon font-bold">{selectedBooking.bookingId}</span>
+              </div>
+              <div className="flex justify-between mb-3">
+                <span className="text-gray-400">Customer:</span>
+                {/* customerId එකේ name එක නැත්නම් 'N/A' පෙන්නන්න */}
+                <span className="text-white">{selectedBooking.customerId?.name || 'N/A'}</span>
+              </div>
+              <div className="flex justify-between mb-3">
+                <span className="text-gray-400">Equipment:</span>
+                <span className="text-white">{selectedBooking.equipmentId?.name}</span>
+              </div>
+              <div className="flex justify-between mb-3">
+                <span className="text-gray-400">Rental Period:</span>
+                <span className="text-white">
+                  {new Date(selectedBooking.startDate).toLocaleDateString()} - {new Date(selectedBooking.endDate).toLocaleDateString()}
+                </span>
+              </div>
+              <div className="flex justify-between mt-4 pt-3 border-t border-gray-800">
+                <span className="text-gray-400 font-semibold">Total Amount:</span>
+                <span className="text-neon font-bold text-lg">LKR {selectedBooking.totalFee}</span>
+              </div>
+            </div>
+
+            {/* Action Buttons */}
+            <div className="flex flex-col gap-3">
+              <button
+                onClick={handleDownloadPDF}
+                disabled={processingId === selectedBooking._id}
+                className="w-full bg-[#43B062] text-black font-bold py-3 rounded-lg hover:bg-green-600 transition flex justify-center items-center gap-2 disabled:opacity-50"
+              >
+                {processingId === selectedBooking._id ? 'Generating...' : '📄 Generate & Download PDF'}
+              </button>
+              <button
+                onClick={() => setIsModalOpen(false)}
+                className="w-full bg-transparent text-gray-400 py-2 rounded-lg hover:text-white hover:bg-gray-800 transition"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
     </div>
   );
 }
