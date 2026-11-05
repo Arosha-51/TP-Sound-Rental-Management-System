@@ -2,6 +2,7 @@ const express = require('express');
 const mongoose = require('mongoose');
 const dotenv = require('dotenv');
 const cors = require('cors');
+const path = require('path');
 
 dotenv.config();
 const app = express();
@@ -18,6 +19,7 @@ mongoose.connect(process.env.MONGO_URI)
 // Routes
 app.use('/api/equipment', require('./routes/equipmentRoutes'));
 app.use('/api/bookings', require('./routes/bookingRoutes'));
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => res.send('API is running...'));
 

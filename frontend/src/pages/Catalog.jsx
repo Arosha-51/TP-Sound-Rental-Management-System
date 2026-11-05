@@ -28,7 +28,7 @@ const imageMap = {
 const API_URL = 'http://localhost:5000/api';
 
 function Catalog() {
-  const navigate = useNavigate(); // 👈 මේක අලුතෙන් දැම්මා
+  const navigate = useNavigate();
 
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -99,7 +99,6 @@ function Catalog() {
             />
           </div>
 
-          {/* 👇 මේ බොත්තමට onClick දැම්මා 👇 */}
           <button 
             onClick={() => navigate('/track')} 
             className="flex items-center gap-2 text-white hover:text-neon transition"
@@ -154,15 +153,27 @@ function Catalog() {
                 className="bg-dark-card border border-dark-border rounded-xl overflow-hidden hover:border-neon transition-all duration-300 hover:shadow-lg hover:shadow-neon/20"
               >
                 <div className="relative h-48 bg-dark flex items-center justify-center overflow-hidden">
-                  {imageMap[item.name] ? (
+                  
+                  {/* මෙතන තමයි අපි අලුත් වෙනස්කම් කළේ */}
+                  {item.imageUrl ? (
+                    // 1. Database එකේ තියෙන Upload කරපු පින්තූරය
+                    <img
+                      src={item.imageUrl}
+                      alt={item.name}
+                      className="w-full h-full object-cover"
+                    />
+                  ) : imageMap[item.name] ? (
+                    // 2. Database එකේ පින්තූරයක් නැත්නම්, Frontend එකේ තියෙන පරණ පින්තූරය
                     <img
                       src={imageMap[item.name]}
                       alt={item.name}
                       className="w-full h-full object-cover"
                     />
                   ) : (
+                    // 3. දෙකම නැත්නම් Emoji එක
                     <span className="text-6xl">🎸</span>
                   )}
+                  
                   <span
                     className={`absolute top-3 right-3 px-3 py-1 rounded-full text-xs font-semibold ${
                       item.status === 'Available'
@@ -188,7 +199,6 @@ function Catalog() {
                     </span>
                   </p>
 
-                  {/* 👇 මේ බොත්තමට අදාල බඩුවේ ID එක එක්ක Book කරන පිටුවට යන්න හැදුවා 👇 */}
                   <button
                     disabled={item.status !== 'Available'}
                     onClick={() => navigate('/book', { state: { equipmentId: item._id, equipment: item } })}
