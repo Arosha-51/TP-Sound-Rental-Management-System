@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import axios from 'axios';
 import logo from '../assets/Logo.png';
+import { useNavigate } from 'react-router-dom';
 
 // Image imports
 import maxtoneDrumKit from '../assets/Gear_Maxtone_Drum_Kit.jpg';
@@ -27,6 +28,8 @@ const imageMap = {
 const API_URL = 'http://localhost:5000/api';
 
 function Catalog() {
+  const navigate = useNavigate(); // 👈 මේක අලුතෙන් දැම්මා
+
   const [equipment, setEquipment] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -96,7 +99,11 @@ function Catalog() {
             />
           </div>
 
-          <button className="flex items-center gap-2 text-white hover:text-neon transition">
+          {/* 👇 මේ බොත්තමට onClick දැම්මා 👇 */}
+          <button 
+            onClick={() => navigate('/track')} 
+            className="flex items-center gap-2 text-white hover:text-neon transition"
+          >
             <span>📋</span>
             <span className="text-sm">Track My Booking</span>
           </button>
@@ -181,8 +188,10 @@ function Catalog() {
                     </span>
                   </p>
 
+                  {/* 👇 මේ බොත්තමට අදාල බඩුවේ ID එක එක්ක Book කරන පිටුවට යන්න හැදුවා 👇 */}
                   <button
                     disabled={item.status !== 'Available'}
+                    onClick={() => navigate('/book', { state: { equipmentId: item._id, equipment: item } })}
                     className={`w-full py-2 rounded-lg font-semibold transition ${
                       item.status === 'Available'
                         ? 'bg-neon text-dark hover:bg-neon/90'

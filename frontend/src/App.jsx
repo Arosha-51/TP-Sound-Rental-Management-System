@@ -3,6 +3,7 @@ import Catalog from './pages/Catalog';
 import BookingForm from './pages/BookingForm';
 import Dashboard from './pages/Dashboard';
 import CheckIn from './pages/CheckIn';
+import TrackBooking from './pages/TrackBooking';
 
 function App() {
   return (
