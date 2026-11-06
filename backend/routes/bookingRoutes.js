@@ -9,7 +9,8 @@ const {
     checkInBooking,
     trackBooking,
     getDashboardStats,
-    getUpcomingReturns // 👈 අලුතෙන් එකතු කළා
+    getUpcomingReturns,
+    getChartData  // 👈 අලුතෙන් එකතු කළා
 } = require('../controllers/bookingController');
 
 // ============================================
@@ -17,6 +18,7 @@ const {
 // ============================================
 router.get('/stats/dashboard', getDashboardStats);
 router.get('/stats/upcoming-returns', getUpcomingReturns);
+
 
 // ============================================
 // 2. TRACK BOOKING ROUTE (මේකත් /:id වලට උඩින් තියෙන්න ඕනේ)
@@ -41,5 +43,8 @@ router.put('/:id/check-in', checkInBooking);
 
 // GET (PDF Contract එක හදන්න)
 router.get('/:id/contract', generatePdfContract);
+
+// GET (Chart Data)
+router.get('/stats/charts', getChartData);
 
 module.exports = router;

@@ -383,6 +383,57 @@ const getUpcomingReturns = async (req, res) => {
 };
 
 // ============================================
+// 9. GET CHART DATA (TPS-205) 👈 අලුතෙන් එකතු කළා
+// ============================================
+const getChartData = async (req, res) => {
+  try {
+    // 1. Category අනුව Revenue එක Group කරනවා (Pie Chart / Bar Chart එකකට)
+    const revenueByCategory = await Booking.aggregate([
+      { $match: { status: { $in: ['Active', 'Completed'] } } },
+      {
+        $lookup: {
+          from: 'equipment',
+          localField: 'equipmentId',
+          foreignField: '_id',
+          as: 'equipmentInfo'
+        }
+      },
+      { $unwind: '$equipmentInfo' },
+      {
+        $group: {
+          _id: '$equipmentInfo.category',
+          revenue: { $sum: '$totalFee' },
+          count: { $sum: 1 } // කොච්චර bookings කීයක්ද කියලා
+        }
+      },
+      { $project: { name: '$_id', value: '$revenue', count: 1, _id: 0 } }
+    ]);
+
+    // 2. Monthly Revenue (Line Chart එකකට)
+    const monthlyRevenue = await Booking.aggregate([
+      { $match: { status: { $in: ['Active', 'Completed'] } } },
+      {
+        $group: {
+          _id: { $month: '$createdAt' }, // මාසය අනුව
+          revenue: { $sum: '$totalFee' }
+        }
+      },
+      { $sort: { _id: 1 } },
+      { $project: { month: '$_id', revenue: 1, _id: 0 } }
+    ]);
+
+    res.status(200).json({
+      revenueByCategory,
+      monthlyRevenue
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+
+// ============================================
 // EXPORTS
 // ============================================
 module.exports = {
@@ -393,5 +444,6 @@ module.exports = {
   checkInBooking,
   trackBooking,
   getDashboardStats,
-  getUpcomingReturns  // 👈 අලුතෙන් එකතු කළා
+  getUpcomingReturns,
+  getChartData   // 👈 අලුතෙන් එකතු කළා
 };
