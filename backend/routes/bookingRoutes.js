@@ -7,8 +7,12 @@ const {
     updateBookingStatus,
     generatePdfContract,
     checkInBooking,
-    trackBooking
+    trackBooking,
+    getDashboardStats
 } = require('../controllers/bookingController');
+
+// අනිත් GET routes වලට උඩින් මේක තියෙන්න ඕනේ (/:id එකට උඩින්)
+router.get('/stats/dashboard', getDashboardStats);
 
 // 1. GET (ඔක්කොම bookings ගන්න) සහ POST (අලුත් booking එකක් හදන්න)
 router.route('/')

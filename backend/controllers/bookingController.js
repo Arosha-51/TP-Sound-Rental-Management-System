@@ -155,7 +155,6 @@ const generatePdfContract = async (req, res) => {
     res.setHeader('Content-Disposition', `attachment; filename=Contract-${booking.bookingId}.pdf`);
     doc.pipe(res);
 
-    // Header
     try {
       doc.image(path.join(__dirname, '../assets/logo.png'), 50, 45, { width: 70 });
     } catch (err) {
@@ -172,14 +171,12 @@ const generatePdfContract = async (req, res) => {
 
     const detailsY = 200;
 
-    // Customer Details
     doc.fontSize(12).font('Helvetica-Bold').fillColor('#0f172a').text('Customer Details:', 50, detailsY);
     doc.fontSize(10).font('Helvetica').fillColor('#333333');
     doc.text(`Name  : ${booking.customerId?.name || 'N/A'}`, 50, detailsY + 20);
     doc.text(`NIC   : ${booking.customerId?.nic || 'N/A'}`, 50, detailsY + 35);
     doc.text(`Phone : ${booking.customerId?.phone || 'N/A'}`, 50, detailsY + 50);
 
-    // Rental Details
     doc.fontSize(12).font('Helvetica-Bold').fillColor('#0f172a').text('Rental Details:', 350, detailsY);
     doc.fontSize(10).font('Helvetica').fillColor('#333333');
     doc.text(`Booking ID : ${booking.bookingId}`, 350, detailsY + 20);
@@ -188,7 +185,6 @@ const generatePdfContract = async (req, res) => {
 
     doc.moveDown(4);
 
-    // Table
     const tableTop = 300;
     doc.rect(50, tableTop, 500, 25).fill('#f1f5f9');
    
@@ -206,7 +202,6 @@ const generatePdfContract = async (req, res) => {
 
     doc.moveTo(50, tableTop + 60).lineTo(550, tableTop + 60).lineWidth(1).strokeColor('#cbd5e1').stroke();
 
-    // Financial Summary
     const summaryY = tableTop + 80;
     doc.rect(300, summaryY, 250, 80).lineWidth(1).strokeColor('#43B062').stroke();
    
@@ -220,7 +215,6 @@ const generatePdfContract = async (req, res) => {
     doc.text('Total Advance :', 310, summaryY + 55);
     doc.text(`LKR ${booking.totalFee + (booking.securityDeposit || 5000)}`, 450, summaryY + 55, { align: 'right', width: 90 });
 
-    // Terms
     const termsY = summaryY + 120;
     doc.fontSize(11).font('Helvetica-Bold').fillColor('#0f172a').text('Terms & Conditions:', 50, termsY);
    
@@ -230,7 +224,6 @@ const generatePdfContract = async (req, res) => {
     doc.text('3. The customer is liable for any damage or loss of the equipment.', 50, termsY + 50);
     doc.text('4. The security deposit will be refunded after deducting any penalties.', 50, termsY + 65);
 
-    // Signatures
     const signY = 650;
     doc.moveTo(50, signY).lineTo(200, signY).lineWidth(1).strokeColor('#000000').stroke();
     doc.moveTo(350, signY).lineTo(500, signY).stroke();
@@ -308,12 +301,10 @@ const checkInBooking = async (req, res) => {
 // ============================================
 // 6. TRACK BOOKING (GET BY CUSTOM BOOKING ID)
 // ============================================
-// 👇 මේක තමයි අලුතෙන් එකතු කළේ 👇
 const trackBooking = async (req, res) => {
   try {
     let searchId = req.params.bookingId;
-    
-    // Frontend එකෙන් # ලකුණ අයින් කරලා එව්වොත්, ආයෙත් # එක එකතු කරනවා DB එකේ තියෙන විදියට හොයන්න
+   
     if (!searchId.startsWith('#')) {
       searchId = '#' + searchId;
     }
@@ -334,6 +325,40 @@ const trackBooking = async (req, res) => {
 };
 
 // ============================================
+// 7. GET DASHBOARD STATS (TPS-198) 👈 අලුතෙන් එකතු කළා
+// ============================================
+const getDashboardStats = async (req, res) => {
+  try {
+    const activeRentals = await Booking.countDocuments({ status: 'Active' });
+    const pendingApprovals = await Booking.countDocuments({ status: 'Pending' });
+   
+    const today = new Date();
+    const overdueReturns = await Booking.countDocuments({
+      status: 'Active',
+      endDate: { $lt: today }
+    });
+
+    // Calculate Total Revenue (from Active and Completed bookings)
+    const revenueData = await Booking.aggregate([
+      { $match: { status: { $in: ['Active', 'Completed'] } } },
+      { $group: { _id: null, total: { $sum: '$totalFee' } } }
+    ]);
+   
+    const totalRevenue = revenueData.length > 0 ? revenueData[0].total : 0;
+
+    res.status(200).json({
+      activeRentals,
+      pendingApprovals,
+      overdueReturns,
+      totalRevenue
+    });
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ============================================
 // EXPORTS
 // ============================================
 module.exports = {
@@ -342,5 +367,6 @@ module.exports = {
   updateBookingStatus,
   generatePdfContract,
   checkInBooking,
-  trackBooking // 👈 මේකත් එකතු කළා
+  trackBooking,
+  getDashboardStats // 👈 අලුතෙන් එකතු කළා
 };
