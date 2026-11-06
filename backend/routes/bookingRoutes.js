@@ -8,31 +8,38 @@ const {
     generatePdfContract,
     checkInBooking,
     trackBooking,
-    getDashboardStats
+    getDashboardStats,
+    getUpcomingReturns // 👈 අලුතෙන් එකතු කළා
 } = require('../controllers/bookingController');
 
-// අනිත් GET routes වලට උඩින් මේක තියෙන්න ඕනේ (/:id එකට උඩින්)
+// ============================================
+// 1. STATS ROUTES (මේවා අනිවාර්යයෙන්ම /:id වලට උඩින් තියෙන්න ඕනේ)
+// ============================================
 router.get('/stats/dashboard', getDashboardStats);
+router.get('/stats/upcoming-returns', getUpcomingReturns);
 
-// 1. GET (ඔක්කොම bookings ගන්න) සහ POST (අලුත් booking එකක් හදන්න)
+// ============================================
+// 2. TRACK BOOKING ROUTE (මේකත් /:id වලට උඩින් තියෙන්න ඕනේ)
+// ============================================
+router.get('/track/:bookingId', trackBooking);
+
+// ============================================
+// 3. GENERAL ROUTES (GET all & POST)
+// ============================================
 router.route('/')
     .get(getBookings)
     .post(createBooking);
 
-// 2. TRACK BOOKING (මේක අනිවාර්යයෙන්ම උඩින් තියෙන්න ඕන) 👇
-router.get('/track/:bookingId', trackBooking);
+// ============================================
+// 4. PARAMETERIZED ROUTES (:id තියෙන ඒවා)
+// ============================================
+// PUT (Approve/Reject කරන්න)
+router.put('/:id/status', updateBookingStatus);
 
-// 3. PUT (Approve/Reject කරන්න)
-router.route('/:id/status')
-    .put(updateBookingStatus);
-
-// 4. PUT (Check-In කරන්න)
+// PUT (Check-In කරන්න)
 router.put('/:id/check-in', checkInBooking);
 
-// 5. GET (PDF Contract එක හදන්න)
+// GET (PDF Contract එක හදන්න)
 router.get('/:id/contract', generatePdfContract);
-
-// 5. PUT (Check-In කරන්න සහ Penalty හදන්න)
-router.put('/:id/check-in', checkInBooking); 
 
 module.exports = router;

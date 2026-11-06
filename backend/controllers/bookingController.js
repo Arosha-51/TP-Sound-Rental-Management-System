@@ -359,6 +359,30 @@ const getDashboardStats = async (req, res) => {
 };
 
 // ============================================
+// 8. GET UPCOMING RETURNS (TPS-201) 👈 අලුතෙන් එකතු කළා
+// ============================================
+const getUpcomingReturns = async (req, res) => {
+  try {
+    const today = new Date();
+   
+    // Active status එකේ තියෙන, අද ඉඳන් ඉදිරියට තියෙන bookings ටික ගන්නවා
+    const upcomingReturns = await Booking.find({
+      status: 'Active',
+      endDate: { $gte: today } // අද ඉඳන් ඉදිරියට
+    })
+      .sort({ endDate: 1 }) // ඉක්මනට ඉවර වෙන ඒවා මුලින්ම එන්න (Ascending)
+      .limit(5) // උපරිම 5ක් විතරක් පෙන්නන්න
+      .populate('customerId', 'name phone')
+      .populate('equipmentId', 'name equipmentCode');
+
+    res.status(200).json(upcomingReturns);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// ============================================
 // EXPORTS
 // ============================================
 module.exports = {
@@ -368,5 +392,6 @@ module.exports = {
   generatePdfContract,
   checkInBooking,
   trackBooking,
-  getDashboardStats // 👈 අලුතෙන් එකතු කළා
+  getDashboardStats,
+  getUpcomingReturns  // 👈 අලුතෙන් එකතු කළා
 };
