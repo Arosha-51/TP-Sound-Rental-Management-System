@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import CheckIn from './pages/CheckIn';
 import TrackBooking from './pages/TrackBooking';
 import AdminInventory from './pages/AdminInventory';
+import Analytics from './pages/Analytics'; // 👈 අලුතෙන් එකතු කළා
 
 function App() {
   return (
@@ -16,6 +17,10 @@ function App() {
         <Route path="/admin/check-in" element={<CheckIn />} />
         <Route path="/track" element={<TrackBooking />} />
         <Route path="/admin/inventory" element={<AdminInventory />} />
+        
+        {/* 👇 අලුතෙන් එකතු කරපු Analytics Route එක */}
+        <Route path="/admin/analytics" element={<Analytics />} /> 
+        
       </Routes>
     </Router>
   );
