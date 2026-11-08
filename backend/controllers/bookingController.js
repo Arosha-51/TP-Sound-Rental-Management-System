@@ -432,6 +432,38 @@ const getChartData = async (req, res) => {
   }
 };
 
+// ============================================
+// 10. SEARCH BOOKING FOR CHECK-IN (TPS-185)
+// ============================================
+const searchBookingForCheckIn = async (req, res) => {
+  try {
+    const { query } = req.query; // Frontend එකෙන් එවන Search text එක
+
+    if (!query) {
+      return res.status(400).json({ message: 'Search query is required' });
+    }
+
+    // 1. මුලින්ම අපි බලමු මේ අංකයට හරියන Phone Number එකක් තියෙන User කෙනෙක් ඉන්නවද කියලා
+    const users = await User.find({ phone: { $regex: query, $options: 'i' } });
+    const userIds = users.map(u => u._id);
+
+    // 2. දැන් අපි Booking එක හොයනවා (Booking ID එකෙන් හෝ අර User ID එකෙන්)
+    const bookings = await Booking.find({
+      status: { $in: ['Active', 'Approved'] }, // බඩු ගෙන්නගන්න පුළුවන් ඒවා විතරයි
+      $or: [
+        { bookingId: { $regex: query, $options: 'i' } }, // Booking ID එකෙන්
+        { customerId: { $in: userIds } }                 // හොයාගත්තු User ID වලින්
+      ]
+    })
+      .populate('customerId', 'name phone nic email')
+      .populate('equipmentId', 'name dailyRate equipmentCode');
+
+    res.status(200).json(bookings);
+  } catch (error) {
+    console.log(error);
+    res.status(500).json({ message: error.message });
+  }
+};
 
 // ============================================
 // EXPORTS
@@ -445,5 +477,6 @@ module.exports = {
   trackBooking,
   getDashboardStats,
   getUpcomingReturns,
-  getChartData   // 👈 අලුතෙන් එකතු කළා
+  getChartData,
+  searchBookingForCheckIn    // 👈 අලුතෙන් එකතු කළා
 };
