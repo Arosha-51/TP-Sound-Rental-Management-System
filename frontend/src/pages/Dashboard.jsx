@@ -11,15 +11,27 @@ function Dashboard() {
   const [processingId, setProcessingId] = useState(null);
   const [message, setMessage] = useState({ type: '', text: '' });
 
-  // 👇 අලුතෙන් එකතු කරපු States (Popup එක සඳහා)
+  // Popup සඳහා
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedBooking, setSelectedBooking] = useState(null);
+  
+  // Upcoming Returns සඳහා
+  const [upcomingReturns, setUpcomingReturns] = useState([]);
+  
+  // 👇 අලුතෙන් එකතු කරපු State එක (Stats සඳහා)
+  const [statsData, setStatsData] = useState({
+    activeRentals: 0,
+    pendingApprovals: 0,
+    overdueReturns: 0,
+    totalRevenue: 0
+  });
 
+  // 👇 API එකෙන් එන ඩේටා දානවා (Hardcode කරපු ඒවා වෙනුවට)
   const stats = [
-    { title: 'Active Rentals', value: '12', color: 'neon', icon: '📊' },
-    { title: 'Pending Approvals', value: bookings.length.toString(), color: 'yellow', icon: '⏳' },
-    { title: 'Overdue Returns', value: '2', color: 'red', icon: '⚠️' },
-    { title: 'Monthly Revenue', value: 'LKR 185,000', color: 'neon', icon: '💰' },
+    { title: 'Active Rentals', value: statsData.activeRentals.toString(), color: 'neon', icon: '📊' },
+    { title: 'Pending Approvals', value: statsData.pendingApprovals.toString(), color: 'yellow', icon: '⏳' },
+    { title: 'Overdue Returns', value: statsData.overdueReturns.toString(), color: 'red', icon: '⚠️' },
+    { title: 'Monthly Revenue', value: `LKR ${statsData.totalRevenue.toLocaleString()}`, color: 'neon', icon: '💰' },
   ];
 
   const fetchBookings = async () => {
@@ -36,11 +48,32 @@ function Dashboard() {
     }
   };
 
+  // 👇 මේක තමයි අඩු වෙලා තිබ්බේ
+  const fetchStats = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/bookings/stats/dashboard');
+      setStatsData(res.data);
+    } catch (error) {
+      console.error("Error fetching stats:", error);
+    }
+  };
+
+  const fetchUpcomingReturns = async () => {
+    try {
+      const res = await axios.get('http://localhost:5000/api/bookings/stats/upcoming-returns');
+      setUpcomingReturns(res.data);
+    } catch (error) {
+      console.error("Error fetching upcoming returns:", error);
+    }
+  };
+
   useEffect(() => {
     fetchBookings();
+    fetchStats();
+    fetchUpcomingReturns();
   }, []);
 
-  // PDF එක ඩවුන්ලෝඩ් කරන ෆන්ක්ෂන් එක (Popup එකෙන් call වෙනවා)
+  // PDF එක ඩවුන්ලෝඩ් කරන ෆන්ක්ෂන් එක
   const handleDownloadPDF = async () => {
     if (!selectedBooking) return;
     try {
@@ -55,7 +88,7 @@ function Dashboard() {
       document.body.appendChild(link);
       link.click();
       link.parentNode.removeChild(link);
-      setIsModalOpen(false); // PDF එක ගත්තට පස්සේ Popup එක වහන්න
+      setIsModalOpen(false);
     } catch (error) {
       console.error('Error downloading PDF:', error);
       alert('PDF එක ගන්න බැරි වුනා. ආයෙත් ට්‍රයි කරන්න.');
@@ -70,6 +103,7 @@ function Dashboard() {
       await axios.put(`http://localhost:5000/api/bookings/${id}/status`, { status: newStatus });
       setMessage({ type: 'success', text: `Booking ${newStatus} successfully!` });
       setBookings(bookings.filter(b => b._id !== id));
+      fetchStats(); // Approve/Reject කරාම Stats අප්ඩේට් වෙන්න
       setTimeout(() => setMessage({ type: '', text: '' }), 3000);
     } catch (error) {
       console.error("Error updating status:", error);
@@ -79,7 +113,6 @@ function Dashboard() {
     }
   };
 
-  // Popup එක අරින්න
   const openContractModal = (booking) => {
     setSelectedBooking(booking);
     setIsModalOpen(true);
@@ -130,7 +163,7 @@ function Dashboard() {
                 <p className="text-gray-400 text-sm">{stat.title}</p>
                 <span className="text-2xl">{stat.icon}</span>
               </div>
-              <p className="text-3xl font-bold text-neon">{stat.value}</p>
+              <p className={`text-3xl font-bold ${stat.color === 'red' ? 'text-red-500' : 'text-neon'}`}>{stat.value}</p>
             </div>
           ))}
         </div>
@@ -188,7 +221,6 @@ function Dashboard() {
                         >
                           Reject
                         </button>
-                        {/* PDF බටන් එක දැන් Popup එක අරිනවා */}
                         <button
                           onClick={() => openContractModal(booking)}
                           disabled={processingId === booking._id}
@@ -204,15 +236,57 @@ function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* 👇 Upcoming Returns Table එක 👇 */}
+        <div className="bg-dark-card border border-dark-border rounded-xl p-6 mt-8">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-xl font-bold text-white">Upcoming Returns (Next 5)</h3>
+          </div>
+
+          {upcomingReturns.length === 0 ? (
+            <p className="text-gray-400">No upcoming returns at the moment.</p>
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full text-left border-collapse">
+                <thead>
+                  <tr className="border-b border-dark-border">
+                    <th className="pb-3 text-gray-400 text-sm font-semibold">Booking ID</th>
+                    <th className="pb-3 text-gray-400 text-sm font-semibold">Customer</th>
+                    <th className="pb-3 text-gray-400 text-sm font-semibold">Equipment</th>
+                    <th className="pb-3 text-gray-400 text-sm font-semibold">Due Date</th>
+                    <th className="pb-3 text-gray-400 text-sm font-semibold">Action</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {upcomingReturns.map((booking) => (
+                    <tr key={booking._id} className="border-b border-dark-border hover:bg-[#252525] transition">
+                      <td className="py-4 text-white font-medium">{booking.bookingId}</td>
+                      <td className="py-4 text-white">{booking.customerId?.name || 'N/A'}</td>
+                      <td className="py-4 text-gray-400">{booking.equipmentId?.name || 'N/A'}</td>
+                      <td className="py-4 text-red-400 font-semibold">
+                        {new Date(booking.endDate).toLocaleDateString()}
+                      </td>
+                      <td className="py-4">
+                        <button
+                          onClick={() => navigate('/admin/check-in')}
+                          className="text-sm bg-blue-600 hover:bg-blue-500 text-white px-3 py-1 rounded transition"
+                        >
+                          Check-In
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+        </div>
       </div>
 
-      {/* =========================================
-          👇 අලුතෙන් හදපු Generate Contract Popup UI 👇
-          ========================================= */}
+      {/* Generate Contract Popup UI */}
       {isModalOpen && selectedBooking && (
         <div className="fixed inset-0 bg-black bg-opacity-70 flex justify-center items-center z-50">
           <div className="bg-[#1e1e1e] p-8 rounded-xl w-full max-w-lg border border-gray-700 shadow-2xl relative">
-            {/* Close Button */}
             <button
               onClick={() => setIsModalOpen(false)}
               className="absolute top-4 right-4 text-gray-400 hover:text-white"
@@ -222,7 +296,6 @@ function Dashboard() {
 
             <h2 className="text-2xl font-bold text-white mb-6 text-center">Generate Rental Contract</h2>
 
-            {/* Details Box */}
             <div className="bg-[#131313] border border-gray-700 rounded-lg p-5 mb-6 text-sm">
               <div className="flex justify-between mb-3 border-b border-gray-800 pb-2">
                 <span className="text-gray-400">Booking ID:</span>
@@ -230,7 +303,6 @@ function Dashboard() {
               </div>
               <div className="flex justify-between mb-3">
                 <span className="text-gray-400">Customer:</span>
-                {/* customerId එකේ name එක නැත්නම් 'N/A' පෙන්නන්න */}
                 <span className="text-white">{selectedBooking.customerId?.name || 'N/A'}</span>
               </div>
               <div className="flex justify-between mb-3">
@@ -249,7 +321,6 @@ function Dashboard() {
               </div>
             </div>
 
-            {/* Action Buttons */}
             <div className="flex flex-col gap-3">
               <button
                 onClick={handleDownloadPDF}
