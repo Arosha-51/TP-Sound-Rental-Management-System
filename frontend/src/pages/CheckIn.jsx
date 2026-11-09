@@ -17,7 +17,7 @@ const CheckIn = () => {
   const [loading, setLoading] = useState(false);
   const [searching, setSearching] = useState(false);
 
-  // 1. Search Booking Function (TPS-184)
+  // 1. Search Booking Function (TPS-184 WD)
   const handleSearch = async (e) => {
     e.preventDefault();
     if (!searchQuery) return;
