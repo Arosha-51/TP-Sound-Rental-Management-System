@@ -1,24 +1,22 @@
 import { useState, useEffect } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import logo from '../assets/Logo.png';
-import { FiSearch, FiShoppingBag, FiSettings, FiMenu, FiX } from 'react-icons/fi';
+import { FiSearch, FiSettings, FiMenu, FiX } from 'react-icons/fi';
 
 function Navbar() {
   const navigate = useNavigate();
   const location = useLocation();
   const [searchTerm, setSearchTerm] = useState('');
   const [activeSection, setActiveSection] = useState('home');
-  
-  // State for mobile menu toggle
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
 
   // Scroll to top on route change
   useEffect(() => {
     window.scrollTo(0, 0);
-    setIsMobileMenuOpen(false); // Close mobile menu on route change
+    setIsMobileMenuOpen(false);
   }, [location.pathname]);
 
-  // Scroll spy logic to highlight active section on scroll
+  // Scroll spy logic
   useEffect(() => {
     if (location.pathname !== '/') return;
 
@@ -44,8 +42,14 @@ function Navbar() {
 
   const handleNavClick = (sectionId) => {
     setActiveSection(sectionId);
-    setIsMobileMenuOpen(false); // Close mobile menu when a link is clicked
+    setIsMobileMenuOpen(false);
     
+    // Fix: If user clicks 'Home' while already on the homepage, just scroll to top
+    if (sectionId === 'home' && location.pathname === '/') {
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+      return;
+    }
+
     if (location.pathname !== '/') {
       navigate('/', { state: { scrollTo: sectionId } });
     } else {
@@ -54,33 +58,50 @@ function Navbar() {
   };
 
   return (
-    <header className="fixed w-full top-0 z-50 bg-[#0f0f0f]/90 backdrop-blur-xl border-b border-[#2a2a2a]">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 h-20 flex justify-between items-center relative">
+    <header className="fixed top-5 left-1/2 transform -translate-x-1/2 w-[98%] max-w-[1400px] z-50">
+      
+      {/* Changed from rounded-full to rounded-2xl for smooth corners */}
+      <div className="bg-white/5 backdrop-blur-3xl border border-white/20 rounded-2xl px-6 lg:px-8 h-16 lg:h-[72px] flex justify-between items-center shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] transition-all duration-300">
         
-        {/* Left: Logo & Text */}
-        <div className="flex items-center gap-3 cursor-pointer z-10" onClick={() => handleNavClick('home')}>
-          <img src={logo} alt="TP Sound Logo" className="w-10 h-10 sm:w-12 sm:h-12 object-contain" />
-          <div className="flex flex-col whitespace-nowrap">
-            <h1 className="text-[#43B062] font-bold text-base sm:text-lg leading-tight">TP Sound &</h1>
-            <p className="text-gray-400 text-[9px] sm:text-[10px] tracking-widest uppercase">Musical Gear Rentals</p>
+        {/* LEFT: Logo & Search Bar */}
+        <div className="flex items-center gap-6 z-10">
+          {/* Logo */}
+          <div className="flex items-center gap-3 cursor-pointer" onClick={() => handleNavClick('home')}>
+            <img src={logo} alt="TP Sound Logo" className="w-8 h-8 lg:w-10 lg:h-10 object-contain drop-shadow-md" />
+            <div className="flex flex-col whitespace-nowrap">
+              <h1 className="text-[#43B062] font-bold text-sm lg:text-base leading-tight drop-shadow-sm">TP Sound &</h1>
+              <p className="text-gray-300 text-[8px] lg:text-[9px] tracking-widest uppercase">Musical Gear Rentals</p>
+            </div>
+          </div>
+
+          {/* Search Bar - Desktop Only */}
+          <div className="hidden lg:flex relative group w-40 xl:w-56">
+            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-300 group-focus-within:text-[#43B062] transition-colors" size={16}/>
+            <input
+              type="text"
+              placeholder="Search gear..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className="w-full bg-white/5 border border-white/10 rounded-lg pl-9 pr-3 py-2 text-sm text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 focus:border-[#43B062]/50 transition-all duration-300 shadow-inner"
+            />
           </div>
         </div>
 
-        {/* Center: Desktop Navigation Links */}
-        <nav className="hidden md:flex items-center absolute left-1/2 transform -translate-x-1/2 gap-2">
-          <Link 
-            to="/" 
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-              location.pathname === '/' && activeSection === 'home' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white'
+        {/* CENTER: Desktop Navigation Links */}
+        <nav className="hidden md:flex items-center justify-center gap-1 lg:gap-2">
+          <button 
+            onClick={() => handleNavClick('home')} 
+            className={`px-4 lg:px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+              location.pathname === '/' && activeSection === 'home' ? 'text-[#0f0f0f] bg-[#43B062] shadow-[0_0_15px_rgba(67,176,98,0.5)]' : 'text-gray-200 hover:text-white hover:bg-white/10'
             }`}
           >
             Home
-          </Link>
+          </button>
           
           <Link 
             to="/catalog" 
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-              location.pathname === '/catalog' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white'
+            className={`px-4 lg:px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+              location.pathname === '/catalog' ? 'text-[#0f0f0f] bg-[#43B062] shadow-[0_0_15px_rgba(67,176,98,0.5)]' : 'text-gray-200 hover:text-white hover:bg-white/10'
             }`}
           >
             Catalog
@@ -88,8 +109,8 @@ function Navbar() {
           
           <button 
             onClick={() => handleNavClick('about')} 
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-              location.pathname === '/' && activeSection === 'about' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white'
+            className={`px-4 lg:px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+              location.pathname === '/' && activeSection === 'about' ? 'text-[#0f0f0f] bg-[#43B062] shadow-[0_0_15px_rgba(67,176,98,0.5)]' : 'text-gray-200 hover:text-white hover:bg-white/10'
             }`}
           >
             About
@@ -97,60 +118,41 @@ function Navbar() {
           
           <button 
             onClick={() => handleNavClick('contact')} 
-            className={`px-4 py-2 rounded-md text-sm font-medium transition-all duration-300 ${
-              location.pathname === '/' && activeSection === 'contact' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white'
+            className={`px-4 lg:px-5 py-2 rounded-lg text-sm font-medium transition-all duration-300 ${
+              location.pathname === '/' && activeSection === 'contact' ? 'text-[#0f0f0f] bg-[#43B062] shadow-[0_0_15px_rgba(67,176,98,0.5)]' : 'text-gray-200 hover:text-white hover:bg-white/10'
             }`}
           >
             Contact
           </button>
         </nav>
 
-        {/* Right: Actions */}
-        <div className="flex items-center gap-1 sm:gap-3 z-10">
+        {/* RIGHT: Actions */}
+        <div className="flex items-center gap-2 sm:gap-4 z-10">
           
-          {/* Search Bar (Desktop only) */}
-          <div className="hidden lg:flex relative group w-48 xl:w-56 mr-2">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-[#43B062] transition-colors" size={16}/>
-            <input
-              type="text"
-              placeholder="Search..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-md pl-9 pr-3 py-2 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#43B062]"
-            />
-          </div>
-
-          {/* Track Icon */}
-          <button onClick={() => navigate('/track')} className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors text-sm font-medium p-2">
-            <FiShoppingBag size={18} />
-          </button>
-          
-          <div className="w-px h-5 bg-[#2a2a2a] mx-1 hidden sm:block"></div>
-
-          {/* Sign In (Hidden on mobile to save space) */}
+          {/* Sign In - Hidden on Mobile */}
           <button 
             onClick={() => navigate('/login')} 
-            className="hidden sm:block text-gray-300 hover:text-white transition-all duration-300 text-sm font-medium px-4 py-2 rounded-md hover:bg-[#1a1a1a]"
+            className="hidden md:block text-gray-200 hover:text-white transition-all duration-300 text-sm font-medium px-4 py-2 rounded-lg hover:bg-white/10"
           >
             Sign In
           </button>
           
-          {/* Sign Up Button */}
+          {/* Sign Up Button - Hidden on Mobile */}
           <button 
             onClick={() => navigate('/register')} 
-            className="bg-[#43B062] text-black px-3 sm:px-5 py-1.5 sm:py-2 rounded-md font-semibold text-xs sm:text-sm transition-all duration-300 hover:bg-green-400 hover:-translate-y-0.5 hover:shadow-[0_5px_15px_rgba(67,176,98,0.4)]"
+            className="hidden md:block bg-[#43B062] text-black px-5 py-2 rounded-lg font-bold text-sm transition-all duration-300 hover:bg-green-400 hover:-translate-y-0.5 hover:shadow-[0_0_20px_rgba(67,176,98,0.6)]"
           >
             Sign Up
           </button>
           
-          {/* Admin Icon (Desktop) */}
-          <button onClick={() => navigate('/admin')} className="hidden sm:block text-gray-400 hover:text-[#43B062] transition-colors p-1 ml-1">
+          {/* Admin Icon - Hidden on Mobile */}
+          <button onClick={() => navigate('/admin')} className="hidden md:flex text-gray-300 hover:text-[#43B062] transition-colors p-2 rounded-lg hover:bg-white/10 ml-1">
             <FiSettings size={20} />
           </button>
 
-          {/* Mobile Menu Toggle Button (Hamburger) */}
+          {/* Mobile Menu Toggle Button */}
           <button 
-            className="md:hidden text-gray-300 hover:text-white p-2 ml-1"
+            className="md:hidden text-gray-200 hover:text-white p-2 ml-1"
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
           >
             {isMobileMenuOpen ? <FiX size={24} /> : <FiMenu size={24} />}
@@ -158,77 +160,76 @@ function Navbar() {
         </div>
       </div>
 
-      {/* Mobile Menu Dropdown */}
+      {/* Mobile Menu Dropdown - Also changed to rounded-2xl */}
       <div 
-        className={`md:hidden overflow-hidden transition-all duration-300 ease-in-out bg-[#0f0f0f] border-b border-[#2a2a2a] ${
-          isMobileMenuOpen ? 'max-h-[400px] opacity-100' : 'max-h-0 opacity-0'
+        className={`md:hidden mt-3 overflow-hidden transition-all duration-300 ease-in-out bg-white/5 backdrop-blur-3xl border border-white/20 rounded-2xl shadow-[0_8px_32px_0_rgba(0,0,0,0.37)] ${
+          isMobileMenuOpen ? 'max-h-[500px] opacity-100' : 'max-h-0 opacity-0 border-transparent'
         }`}
       >
-        <div className="px-6 py-4 flex flex-col gap-4">
+        <div className="px-6 py-5 flex flex-col gap-4">
           
           {/* Mobile Search Bar */}
           <div className="relative group w-full">
-            <FiSearch className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500 group-focus-within:text-[#43B062] transition-colors" size={18}/>
+            <FiSearch className="absolute left-4 top-1/2 transform -translate-y-1/2 text-gray-300 group-focus-within:text-[#43B062] transition-colors" size={16}/>
             <input
               type="text"
               placeholder="Search gear..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="w-full bg-[#1a1a1a] border border-[#2a2a2a] rounded-md pl-10 pr-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-[#43B062]"
+              className="w-full bg-white/5 border border-white/10 rounded-lg pl-11 pr-4 py-2.5 text-sm text-white placeholder-gray-400 focus:outline-none focus:bg-white/10 focus:border-[#43B062]/50"
             />
           </div>
 
           {/* Mobile Links */}
           <div className="flex flex-col gap-1">
-            <Link 
-              to="/" 
-              onClick={() => setIsMobileMenuOpen(false)}
-              className={`px-4 py-3 rounded-md text-sm font-medium transition-all ${
-                location.pathname === '/' && activeSection === 'home' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white hover:bg-[#1a1a1a]'
+            <button 
+              onClick={() => handleNavClick('home')} 
+              className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                location.pathname === '/' && activeSection === 'home' ? 'text-[#0f0f0f] bg-[#43B062]' : 'text-gray-200 hover:text-white hover:bg-white/10'
               }`}
             >
               Home
-            </Link>
+            </button>
             <Link 
               to="/catalog" 
               onClick={() => setIsMobileMenuOpen(false)}
-              className={`px-4 py-3 rounded-md text-sm font-medium transition-all ${
-                location.pathname === '/catalog' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white hover:bg-[#1a1a1a]'
+              className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                location.pathname === '/catalog' ? 'text-[#0f0f0f] bg-[#43B062]' : 'text-gray-200 hover:text-white hover:bg-white/10'
               }`}
             >
               Catalog
             </Link>
             <button 
               onClick={() => handleNavClick('about')} 
-              className={`text-left px-4 py-3 rounded-md text-sm font-medium transition-all ${
-                location.pathname === '/' && activeSection === 'about' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white hover:bg-[#1a1a1a]'
+              className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                location.pathname === '/' && activeSection === 'about' ? 'text-[#0f0f0f] bg-[#43B062]' : 'text-gray-200 hover:text-white hover:bg-white/10'
               }`}
             >
               About Us
             </button>
             <button 
               onClick={() => handleNavClick('contact')} 
-              className={`text-left px-4 py-3 rounded-md text-sm font-medium transition-all ${
-                location.pathname === '/' && activeSection === 'contact' ? 'text-[#43B062] bg-[#1a1a1a]' : 'text-gray-300 hover:text-white hover:bg-[#1a1a1a]'
+              className={`text-left px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                location.pathname === '/' && activeSection === 'contact' ? 'text-[#0f0f0f] bg-[#43B062]' : 'text-gray-200 hover:text-white hover:bg-white/10'
               }`}
             >
               Contact
             </button>
           </div>
 
-          {/* Mobile Auth / Admin Links */}
-          <div className="flex flex-col gap-2 pt-4 border-t border-[#2a2a2a]">
+          {/* Mobile Auth Links */}
+          <div className="flex flex-col gap-1 pt-3 border-t border-white/10">
             <button 
               onClick={() => { navigate('/login'); setIsMobileMenuOpen(false); }} 
-              className="w-full text-left px-4 py-2 text-sm font-medium text-gray-300 hover:text-white"
+              className="w-full text-left px-4 py-2 text-sm font-medium text-gray-200 hover:text-white rounded-lg hover:bg-white/10"
             >
               Sign In
             </button>
             <button 
-              onClick={() => { navigate('/admin'); setIsMobileMenuOpen(false); }} 
-              className="w-full text-left px-4 py-2 text-sm font-medium text-gray-300 hover:text-white flex items-center gap-2"
+              onClick={() => { navigate('/register'); setIsMobileMenuOpen(false); }} 
+              className="w-full text-left px-4 py-2 text-sm font-medium text-[#43B062] hover:text-green-400 rounded-lg hover:bg-white/10"
             >
-              <FiSettings size={16} /> Admin Portal
+              Sign Up
             </button>
           </div>
         </div>
