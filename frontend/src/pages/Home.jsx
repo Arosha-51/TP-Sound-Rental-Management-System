@@ -77,7 +77,6 @@ function Home() {
   };
 
   return (
-    // Reverted to font-sans so it uses your default premium font (Inter/system-ui) again
     <div className="min-h-screen bg-[#0f0f0f] text-white font-sans flex flex-col">
       <Navbar />
 
@@ -90,10 +89,6 @@ function Home() {
         <div className="absolute inset-0 bg-gradient-to-r from-[#0f0f0f] via-[#0f0f0f]/80 to-transparent"></div>
         
         <div className="relative z-10 max-w-7xl mx-auto px-6 w-full flex flex-col justify-center py-20 reveal">
-          {/* Dancing Script Title */}
-          <span className="font-['Dancing_Script'] text-4xl md:text-5xl text-[#43B062] mb-2 block tracking-wide">
-            Welcome to TP Sound
-          </span>
           
           <h2 className="text-4xl sm:text-5xl md:text-7xl font-extrabold leading-tight mb-6 text-white tracking-tight">
             Rent Premium <br/>
