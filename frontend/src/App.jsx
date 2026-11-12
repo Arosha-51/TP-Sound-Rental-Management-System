@@ -1,26 +1,29 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
+import Home from './pages/Home';
 import Catalog from './pages/Catalog';
 import BookingForm from './pages/BookingForm';
 import Dashboard from './pages/Dashboard';
 import CheckIn from './pages/CheckIn';
 import TrackBooking from './pages/TrackBooking';
 import AdminInventory from './pages/AdminInventory';
-import Analytics from './pages/Analytics'; // 👈 අලුතෙන් එකතු කළා
+import Analytics from './pages/Analytics';
+import AdminLayout from './components/AdminLayout'; 
 
 function App() {
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<Catalog />} />
+        {/* Customer Routes */}
+        <Route path="/" element={<Home />} />
+        <Route path="/catalog" element={<Catalog />} />
         <Route path="/book" element={<BookingForm />} />
-        <Route path="/admin" element={<Dashboard />} />
-        <Route path="/admin/check-in" element={<CheckIn />} />
         <Route path="/track" element={<TrackBooking />} />
-        <Route path="/admin/inventory" element={<AdminInventory />} />
         
-        {/* 👇 අලුතෙන් එකතු කරපු Analytics Route එක */}
-        <Route path="/admin/analytics" element={<Analytics />} /> 
-        
+        {/* Admin Routes (Wrapped in Layout) */}
+        <Route path="/admin" element={<AdminLayout><Dashboard /></AdminLayout>} />
+        <Route path="/admin/inventory" element={<AdminLayout><AdminInventory /></AdminLayout>} />
+        <Route path="/admin/check-in" element={<AdminLayout><CheckIn /></AdminLayout>} />
+        <Route path="/admin/analytics" element={<AdminLayout><Analytics /></AdminLayout>} />
       </Routes>
     </Router>
   );
