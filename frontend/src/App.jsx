@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import Home from './pages/Home';
 import Catalog from './pages/Catalog';
+import ItemDetails from './pages/ItemDetails'; // 👈 අලුතෙන් එකතු කළා
 import BookingForm from './pages/BookingForm';
 import Dashboard from './pages/Dashboard';
 import CheckIn from './pages/CheckIn';
@@ -8,7 +9,7 @@ import TrackBooking from './pages/TrackBooking';
 import AdminInventory from './pages/AdminInventory';
 import Analytics from './pages/Analytics';
 import AdminLayout from './components/AdminLayout'; 
-import FloatingWhatsApp from './components/FloatingWhatsApp'; // 👈 අලුතෙන් එකතු කළා
+import FloatingWhatsApp from './components/FloatingWhatsApp';
 
 function App() {
   return (
@@ -17,6 +18,7 @@ function App() {
         {/* Customer Routes */}
         <Route path="/" element={<Home />} />
         <Route path="/catalog" element={<Catalog />} />
+        <Route path="/equipment/:id" element={<ItemDetails />} /> {/* 👈 අලුත් Route එක */}
         <Route path="/book" element={<BookingForm />} />
         <Route path="/track" element={<TrackBooking />} />
         
@@ -27,7 +29,6 @@ function App() {
         <Route path="/admin/analytics" element={<AdminLayout><Analytics /></AdminLayout>} />
       </Routes>
 
-      {/* 👇 මෙන්න මේක Routes එකට එළියෙන් දාන්න */}
       <FloatingWhatsApp />
     </Router>
   );
