@@ -8,6 +8,7 @@ import TrackBooking from './pages/TrackBooking';
 import AdminInventory from './pages/AdminInventory';
 import Analytics from './pages/Analytics';
 import AdminLayout from './components/AdminLayout'; 
+import FloatingWhatsApp from './components/FloatingWhatsApp'; // 👈 අලුතෙන් එකතු කළා
 
 function App() {
   return (
@@ -25,6 +26,9 @@ function App() {
         <Route path="/admin/check-in" element={<AdminLayout><CheckIn /></AdminLayout>} />
         <Route path="/admin/analytics" element={<AdminLayout><Analytics /></AdminLayout>} />
       </Routes>
+
+      {/* 👇 මෙන්න මේක Routes එකට එළියෙන් දාන්න */}
+      <FloatingWhatsApp />
     </Router>
   );
 }
