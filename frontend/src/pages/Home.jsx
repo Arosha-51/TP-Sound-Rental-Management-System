@@ -210,14 +210,24 @@ function Home() {
               ))}
             </div>
           </div>
-          <div className="relative reveal delay-200">
-            <div className="absolute -inset-4 bg-gradient-to-r from-[#43B062] to-blue-500 rounded-2xl blur-lg opacity-20"></div>
-            <img 
-              src={whoweareImg} 
-              alt="About TP Sound" 
-              className="relative rounded-2xl border border-[#2a2a2a] w-full h-[450px] object-cover"
-            />
+          
+          {/* Image with Smooth Zoom In Effect & Reduced Glow */}
+          <div className="relative reveal delay-200 group">
+            {/* Reduced Animated Glow Background */}
+            <div className="absolute -inset-2 bg-gradient-to-r from-[#43B062] to-emerald-600 rounded-2xl blur-md opacity-10 group-hover:opacity-20 transition-all duration-700"></div>
+            
+            {/* Image Container with Smooth Zoom */}
+            <div className="relative rounded-2xl border border-[#2a2a2a] overflow-hidden w-full h-[450px] transition-transform duration-700 ease-out group-hover:scale-[1.02] shadow-xl group-hover:shadow-[0_20px_40px_-10px_rgba(67,176,98,0.2)]">
+              <img 
+                src={whoweareImg} 
+                alt="About TP Sound" 
+                className="w-full h-full object-cover transition-transform duration-1000 ease-out group-hover:scale-110"
+              />
+              {/* Shimmer Effect Overlay */}
+              <div className="absolute inset-0 bg-gradient-to-tr from-transparent via-white/10 to-transparent -translate-x-full group-hover:translate-x-full transition-transform duration-1000 ease-out pointer-events-none"></div>
+            </div>
           </div>
+          
         </div>
       </section>
 
